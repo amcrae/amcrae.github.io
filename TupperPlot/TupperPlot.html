@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>TupperPlot in JavaScript</title>
+<script type="text/javascript" src="BigInt.js"></script>
+<script type="text/javascript" src="prototype.js"></script>
+<script type="text/javascript" src="TupperPlot.js"></script>
+
+<style>
+
+#plotArea {
+  width:1000px;
+  font-size:0px;
+  padding:12px;
+  line-height:8px;
+  border:1px solid black;
+}
+
+.pixel {
+  margin:0;
+  width:4px;
+  font-size:0px;
+  height:4px;
+  padding:4px;
+  background-color:gray;
+}
+</style>
+
+</head>
+
+<body onload="drawPlotArea(106,17,true,true);">
+
+<div id="plotArea">
+</div>
+<p id="fdesc"></p>
+
+<b>Jeff Tupper's Self-Referential Formula, implemented in JavaScript.</b> <button onclick="drawTupper();">Plot Tupper's Formula</button><p>
+
+<textarea id="log" rows="9" cols="80">
+
+</textarea>
+
+<p>
+<!--Creative Commons License-->
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/2.5/au/">
+<img alt="Creative Commons License" border="0" src="http://i.creativecommons.org/l/by-sa/2.5/au/88x31.png" class="cc-button"/></a>
+<div class="cc-info">
+<span xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+"<span id="work_title" rel="dc:type" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dc:title">TupperPlot in JavaScript</span>"
+ by <a rel="cc:attributionURL" property="cc:attributionName" href="mailto:ajmcrae.STOPSPAM@gmail.STOPSPAM.com">Andrew McRae</a>
+ is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/2.5/au/">Creative Commons Attribution-ShareAlike 2.5 Australia License</a>. 
+</span>
+</div>
+
+</html>
