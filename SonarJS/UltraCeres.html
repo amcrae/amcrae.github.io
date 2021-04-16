@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <script src="https://www.desmos.com/api/v1.4/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+</head>
+<body>
+<h2>Quadratic Function</h2>
+<p>This is an example of the solution of multiple hyperbolas using <a href="https://github.com/Pterodactylus/Ceres.js">Ceres.js</a>
+as part of a passive TDOA triangulation algorithm.</p>
+<code>solveEquations( [ <br>
+	8.43864x^2 - 12x y + 3.43864y^2 + 17.43864x - 11.15797y = -8.98031, 	<br>
+	-10.7316x^2 + 24x y - 3.7316y^2 + 3.4632x - 18.4026y = -11.6665 ,	<br>
+	-34.48329x^2 + 1.51671y^2 + 34.48329x = 5.35201 	<br>
+] )</code>
+<div id="calculator" style="width: 600px; height: 400px;"></div>
+<script>
+  var elt = document.getElementById('calculator');
+  var calculator = Desmos.GraphingCalculator(elt);
+  calculator.setExpression({ id: 'A', latex: "(0,1.5)", label:"A", showLabel:true });
+  calculator.setExpression({ id: 'B', latex: "(-1,0)", label:"B", showLabel:true });
+  calculator.setExpression({ id: 'D', latex: "(+2,0)", label:"D", showLabel:true });
+  calculator.setExpression({ id: 'hyp1', latex: '8.43864x^2 - 12*x*y + 3.43864y^2 + 17.43864x - 11.15797y = -8.98031' });
+  calculator.setExpression({ id: 'hyp2', latex: '-10.7316x^2 + 24*x*y - 3.7316y^2 + 3.4632x - 18.4026y = -11.6665' });
+  calculator.setExpression({ id: 'hyp3', latex: '-34.48329x^2 + 1.51671*y^2 + 34.48329*x = 5.35201' });
+  calculator.setExpression({ id: 'line1', latex: "-1.2327x + 0.20724y = -1.07727" });
+  calculator.setExpression({ id: 'line2', latex: "-0.83753x + 0.33323y = 0.66869" });
+</script>
+
+<p>
+	<textarea id="demo" rows="40" cols="170">
+	</textarea>
+</p>
+
+<script type="text/javascript">
+var VecUtil = {
+	__prefixesMacro:['k','M','G','T','P'],
+	__prefixesMicro:['m','μ','n','p','f'],
+
+	degToRad: function(deg){  return Math.PI*deg/180.0 },
+	radToDeg: function(rad){  return 180.0*rad/Math.PI },
+
+	sub: function(a,b){ 
+		var answer=[];
+		for (var k in a) {
+			answer.push(a[k]-b[k]);
+		}
+		return answer;
+	},
+
+	add: function(a,b){ 
+		var answer=[];
+		for (var k in a) {
+			answer.push(a[k]+b[k]);
+		}
+		return answer;
+	},
+
+	mag: function(v){ 
+		var answer=0;
+		for (var k in v) {
+			answer += ( v[k] * v[k] );
+		}
+		return Math.sqrt(answer);
+	},
+
+	dot: function(a,b){
+		var answer=0;
+		for (var k in a) {
+			answer += (a[k]*b[k]);
+		}
+		return answer;
+	},
+
+
+	mul: function(a,b){
+		var answer=[];
+		for (var k in a) {
+			answer.push( a[k]*b );
+		}
+		return answer;
+	},
+
+	polarToVec2D: function(angle, radius){
+		return [radius*Math.cos(angle), radius*Math.sin(angle) ];
+	},
+
+	angleBetween: function(a,b) {
+		var cosTheta = this.dot(a,b) / (this.mag(a)*this.mag(b));
+		return Math.acos( cosTheta );
+	},
+
+	toPolar: function(v) {
+		var m = this.mag(v);
+		var ang = this.angleBetween([1,0], v);
+		if (v[1]<0) ang *= -1;
+		return {radius: m, angle:ang};
+	},
+
+	toEngFormat: function(val, baseSIUnit) {
+		if (val==0) return "0"+baseSIUnit;
+		var absval = Math.abs(val);
+		var order = Math.floor(Math.log10(absval));
+		var shifter = Math.floor(order / 3);
+		var shifted = absval * Math.pow(10, -shifter*3);
+		if (shifter>5 || shifter<-5) {
+		  return val.toPrecision(3)+baseSIUnit;
+		} else {
+		  var formatted = Math.sign(val) * shifted.toPrecision(3)
+		  + (shifter==0 ? baseSIUnit
+				 : ( shifter<0 ? this.__prefixesMicro[-shifter-1] + baseSIUnit
+				  	       : this.__prefixesMacro[ shifter-1] + baseSIUnit )
+		  );
+		  return formatted;
+		}
+	}
+}
+</script>
+
+<script type="module">
+	import {Ceres} from 'https://cdn.jsdelivr.net/gh/Pterodactylus/Ceres.js@master/Ceres-v1.5.3.js'
+
+	var RxPositions = 
+	[
+	 [ 0.0, 1.5],	// A
+	 [-1.0, 0.0],	// B
+	 [+1.0, 0.0]	// C
+	];
+
+	var	receiverSeparation = function(refIndex, targetIndex){
+		return VecUtil.mag( [
+		 RxPositions[targetIndex][0]-RxPositions[refIndex][0], 
+		 RxPositions[targetIndex][1]-RxPositions[refIndex][1]
+		] );
+	}
+
+	const velocity = 343.0;
+
+	var SrcPos = [2,7];
+
+	//TODO: generate this from the receiver locations and an oracle-like knowledge of the srcPostion (as a test harness).
+	var TDOA = [	// All in seconds, obviously.
+		//  A		B		C
+		[ 0.000, +0.005, +0.003],	// Relative to A.
+		[-0.005,  0.000, -0.002],	//
+		[-0.003, +0.002,  0.000]	// Relative to D.
+	];
+
+	//DOA at pair A and D relative to the baseline between them, determined by delay at D relative to A.
+	// asin(v Delay_aC / Distance[A, C])
+	var DOA_aC_rads = Math.asin( velocity*TDOA[0][2] / receiverSeparation(0,2) )
+	var baseAC_dir = VecUtil.sub( RxPositions[2], RxPositions[0] )
+	//baseAC_dir = VecUtil.mul(baseAC_dir, 1.0/VecUtil.mag(baseAC_dir))
+	var ray_dir = VecUtil.polarToVec2D(VecUtil.toPolar(baseAC_dir).angle + Math.PI/2 + DOA_aC_rads, 1.0)
+	var ray_pos = VecUtil.add(RxPositions[0], VecUtil.mul(VecUtil.sub(RxPositions[2],RxPositions[0]), 0.5))
+	console.log("First ray in vector form", ray_dir, ray_pos)
+	// convert to Cartesian line equation using the direction ratios which are basically the unit vector components.
+	// (x-x0)/u.x = (y-y0)/u.y		so		(x-x0)/u.x - (y-y0)/u.y = 0
+	//  x/u.x - x0/u.x - y/u.y + y0/u.y = 0	
+	//  A*x + B*y + C = 0;  where A=1/u.x ; B=-1/u.y ; C=y0/u.y-x0/u.x
+	var coeffA = 1.0/ray_dir[0];
+	var coeffB = -1.0/ray_dir[1];
+	var partC = ray_pos[1]/ray_dir[1] - ray_pos[0]/ray_dir[0];
+	console.log("Cartesian: ", coeffA,"x + ", coeffB,"y + ", partC);
+
+	var line1 = function(x) {
+		//return -1.2327*x[0] + 0.20724*x[1] + 1.07727
+		return coeffA*x[0] + coeffB*x[1] + partC;
+	}
+
+	//TODO: translate the other formulas from the Geogebra file so the geometric functions are calculated from a variable input.
+
+	var line2 = function(x) {
+		return -0.83753*x[0] + 0.33323*x[1] - 0.66869
+	}
+
+	var hyp1 = function f1(x){
+		return (8.43864*Math.pow(x[0],2) - 12*x[0]*x[1] + 3.43864*Math.pow(x[1],2) + 17.43864*x[0] - 11.15797*x[1] + 8.98031)
+	}
+
+	var hyp2 = function f2(x){
+		return (-10.7316*Math.pow(x[0],2) + 24*x[0]*x[1] - 3.7316*Math.pow(x[1],2) + 3.4632*x[0] - 18.4026*x[1] + 11.6665 )
+	}
+
+	var hyp3 = function(x) {
+		return (-34.48329*Math.pow(x[0],2) + 1.51671*Math.pow(x[1],2) + 34.48329*x[0] - 5.35201 )
+	}
+	
+	let solver = new Ceres()
+	solver.promise.then(function(result) { 
+		// First phase, the linear estimate using two differencing pairs
+		solver.add_function(line1) //Add the first equation to the solver.
+		solver.add_function(line2) //Add the second equation to the solver.
+		solver.add_lowerbound(0, -20.0) //Add a lower bound to the x[0] variable
+		solver.add_upperbound(0, +20.0) //Add a upper bound to the x[0] variable
+		solver.add_lowerbound(1, +1.5) //Add a lower bound to the x[1] variable
+		solver.add_upperbound(1, +100.0) //Add a upper bound to the x[1] variable
+		var est = solver.solve([0,50])
+		console.log(est.x)
+
+		solver.reset()
+		// Second phase, use the simple linear estimate as the initial guess for the real solution.
+
+		solver.add_function(hyp1) //Add the first equation to the solver.
+		solver.add_function(hyp2) //Add the second equation to the solver.
+		solver.add_function(hyp3) //overdetermined?
+		//solver.add_callback(c1) //Add the callback to the solver.
+		solver.add_lowerbound(0, -20.0) //Add a lower bound to the x[0] variable
+		solver.add_upperbound(0, +20.0) //Add a upper bound to the x[0] variable
+		solver.add_lowerbound(1, +1.5) //Add a lower bound to the x[1] variable
+		solver.add_upperbound(1, +100.0) //Add a upper bound to the x[1] variable
+
+		var x_guess = est.x // [2,7.3] //Guess the initial values of the solution.
+		var s = solver.solve(x_guess) //Solve the equation
+		var x = s.x //assign the calculated solution array to the variable x
+
+		document.getElementById("demo").value = s.report //Print solver report
+		solver.remove() //required to free the memory in C++
+	})
+</script>
+The correct answer in this example should be exactly (2,7).
+</body>
+</html>
