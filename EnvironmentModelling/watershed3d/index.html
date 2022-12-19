@@ -6,13 +6,15 @@
 <body>
 <h2>Watershed3d</h2>
 
+<h3>Random terrain</h3>
+
 <ol>
   <li>Random noise terrain object created in Blender 2.82.
   <li>Terrain exported as STL which is readable by snappyHexMesh.
   <li>Boundary patches set to be walls to enable obvious pooling.
-  <li>OpenFOAM9 snappyHexMesh inserts the object as a patch in the grid with additional surface layer cells. This made a total of 532937 grid cells in the mesh.
-  <li>interFoam is used to simulate the water falling onto the terrain and pooling.
-  <li>Simulation was run on my AMD 12-core Ryzen 9 desktop in less than 4 hours.
+  <li>OpenFOAM 9 snappyHexMesh inserts the object as a patch in the grid with additional surface layer cells. This made a total of 651878 grid cells in the mesh.
+  <li>interFoam is used to simulate the water falling onto the terrain and pooling with 1ms timestep.
+  <li>Simulation was run on my AMD 12-core Ryzen 9 desktop in less than 12 hours.
   <li>paraFoam (ParaView) is used manually to collect all written state frames into a movie.
 </ol>
 
@@ -25,6 +27,26 @@ Animation created with ParaView:
 <p>
 <a href="watershed3d_src.zip">OpenFOAM case source files [zip]</a> runnable on Linux + OpenFOAM9.
 </p>
+
+<h3>More Realistic Terrain</h3>
+
+<ol>
+  <li>terrain object created in Blender 2.82 using a height map exported from an online topography browser.
+  <li>Terrain exported as STL which is readable by snappyHexMesh.
+  <li>Boundary patches set to be walls to enable obvious pooling.
+  <li>OpenFOAM 9 snappyHexMesh inserts the object as a patch in the grid with additional surface layer cells. This made a total of 532937 grid cells in the mesh.
+  <li>interFoam is used to simulate the water falling onto the terrain and pooling.
+  <li>Simulation was run on my AMD 12-core Ryzen 9 desktop in less than 4 hours at 2ms timestep.
+  <li>paraFoam (ParaView) is used manually to collect all written state frames into a movie.
+</ol>
+
+Animation created with ParaView:
+ <video width="1280" height="720" controls>
+  <source src="kozrejig-14s-render3.ogv" type="video/ogg">
+  Your browser does not support the video tag.
+</video> 
+
+<hr>
 
 <a href="../index.html">Return to Env Modelling projects list</a>.
 </body>
