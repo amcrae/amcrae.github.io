@@ -1,0 +1,31 @@
+<!DOCTYPE html/>
+<html>
+<head>
+<title>Watershed3d</title>
+</head>
+<body>
+<h2>Watershed3d</h2>
+
+<ol>
+  <li>Random noise terrain object created in Blender 2.82.
+  <li>Terrain exported as STL which is readable by snappyHexMesh.
+  <li>Boundary patches set to be walls to enable obvious pooling.
+  <li>OpenFOAM9 snappyHexMesh inserts the object as a patch in the grid with additional surface layer cells. This made a total of 532937 grid cells in the mesh.
+  <li>interFoam is used to simulate the water falling onto the terrain and pooling.
+  <li>Simulation was run on my AMD 12-core Ryzen 9 desktop in less than 4 hours.
+  <li>paraFoam (ParaView) is used manually to collect all written state frames into a movie.
+</ol>
+
+Animation created with ParaView:
+ <video width="1280" height="720" controls>
+  <source src="watershed-14s-render3.ogv" type="video/ogg">
+  Your browser does not support the video tag.
+</video> 
+
+<p>
+<a href="watershed3d_src.zip">OpenFOAM case source files [zip]</a> runnable on Linux + OpenFOAM9.
+</p>
+
+<a href="../index.html">Return to Env Modelling projects list</a>.
+</body>
+</html>
