@@ -1,0 +1,2 @@
+Mesh definition files are generated into this directory by blockMesh and snappyHexMesh.
+

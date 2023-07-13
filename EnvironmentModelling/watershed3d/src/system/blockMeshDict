@@ -1,0 +1,123 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1.0;	//This gives you the scale: 0.001 would mean all units in this file are [mm]
+
+BBLX       -24;
+BBHX        24;
+BBLY       -24;
+BBHY        24;
+BBLZ       -1.2;
+BBHZ        6;
+
+vertices		//list of vertices defining the geometry
+(
+    ($BBLX $BBLY $BBLZ)		//This is point 0. Not 1!
+    ($BBHX $BBLY $BBLZ)		//This is point 1
+    ($BBHX $BBHY $BBLZ)		//point 2
+    ($BBLX $BBHY $BBLZ)		//point 3
+    ($BBLX $BBLY $BBHZ)		//point 4
+    ($BBHX $BBLY $BBHZ)		//point 5
+    ($BBHX $BBHY $BBHZ) 	//point 6
+    ($BBLX $BBHY $BBHZ)		//point 7
+);
+
+blocks			//defining the block which the geometry is made out of
+(
+      hex (0 1 2 3 4 5 6 7) (50 50 6)  simpleGrading (1 1 1)
+//this means that the only block in the geometry is defined by vertices (0 1 2 ...), there are 100, 10 
+//and 1 cells in the x, y, and z direction and that in each direction all the cells have the same length 
+);
+
+edges
+(
+//    spline 0 1 
+//    (
+//	    (5 -2 0)
+//    )
+//    spline 4 5 
+//    (
+//	    (5 -2 0.1)
+//    )
+);
+
+// make +Y .. -Y == North..South
+//      +X .. -X == East..West
+
+boundary
+(
+    NorthWall	//choose a name for the boundary
+    {
+        type wall;	//define the type of the boundary
+        faces
+        (
+            // (0 4 5 1)	//list the faces; vertices should be listed in clockwise direction, as seen from the block
+            (2 3 7 6)
+
+        );
+    }
+
+    SouthWall	//choose a name for the boundary
+    {
+        type wall;	//define the type of the boundary
+        faces
+        (
+            (0 4 5 1)	//list the faces; vertices should be listed in clockwise direction, as seen from the block
+        );
+    }
+    
+    atmosphere
+    {
+        type patch;
+        faces
+        (
+            (7 6 5 4)
+	    );
+    }	   	
+
+
+    groundPlane
+    {
+	    type patch;
+	    faces
+	    (
+            (0 1 2 3)
+	    );
+    }
+
+
+    WestWall
+    {
+        type wall;
+        faces
+        (
+            (0 4 7 3)       //The BBLX wall.
+        );
+    }
+
+    EastWall
+    {
+        type wall;
+        faces
+        (
+            (1 2 6 5)       //The BBHX wall.
+        );
+    }
+);
+
+
+// ************************************************************************* //
+
