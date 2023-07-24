@@ -65,10 +65,13 @@ do
 	if [[ $errc -eq 0 ]]
 	then
 	  echo $(date --rfc-3339=seconds) ${pair} ended OK. >>miccaploop_errs.txt
+	  failcount=0
 	  rm $errfile
 	else
 	  failcount=$(($failcount + 1))
 	  echo $(date --rfc-3339=seconds) ${pair} error code $errc , stderr in $errfile >>miccaploop_errs.txt
+	  echo Pausing for 15 sec in the hope that a hardware cause self-rectifies.
+	  sleep 15
 	fi
 done
 
