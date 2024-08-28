@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sudoku Puzzle Solver</title>
+    <script src="jquery-3.7.1.js"></script>
+    <script src="sudoku.js"></script>
+    <style>
+        #tlog {
+            width: 36em;
+            height: 26em;
+        }
+        .sudokucell {
+            display: inline-block;
+            text-align: center;
+            width: 2em;
+            height: 1.5em;
+            border: 4px solid lightgray;
+        }
+        .hardright {
+            border-right: 4px solid black;
+        }
+        .hardbottom {
+            border-bottom: 4px solid black;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    <textarea id="tlog">Log.
+    </textarea>
+    -->
+    <script src="eg.js"></script>
+    Solve novice-level puzzles. <br>
+    Requires browser version to be later than June 2024 for full <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference#browser_compatibility">Set support</a>.<br>
+    Puzzle:
+    <div id="question">
+    </div>
+    <script>
+        // DHTML renderer for puzzle.
+        function renderboard(puzzle,parentElem,prefix,editable) {
+            for (let y=0;y<9;y++) {
+                for(let x=0;x<9;x++) {
+                    if (editable) {
+                        var cell = document.createElement('input');
+                        cell.value = puzzle.getDigit(y,x);
+                    } else {
+                        var cell = document.createElement('span');
+                        cell.textContent = puzzle.getDigit(y,x);
+                    }
+                    cell.id = prefix+y+x;
+                    var cl = 'sudokucell';
+                    if (x%3==2) cl +=' hardright';
+                    if (y%3==2) cl +=' hardbottom';
+                    cell.className = cl;
+                    cell.dataRow = y;
+                    cell.dataCol = x;
+                    
+                    cell.maxLength = 1;
+                    parentElem.append(cell);
+                    if (editable) {
+                        cell.onchange = function(event) {
+                            //$('#tlog').text($('#tlog').text() + "\n" + event.target.dataRow);
+                            var v= event.target.value;
+                            if (v==null || v=='') v = ' ';
+                            puzzle.setDigit(event.target.dataRow,event.target.dataCol,v);
+                        };
+                    }
+                }
+                parentElem.append(document.createElement('br'));
+            }
+        }
+
+        var puzz = new SudokuPuzzle(eg1puzz);
+        var qdiv = $("#question")[0];
+        renderboard(puzz,qdiv,"q",true);
+
+        function solveq() {
+            var answer = puzz.solve();
+            console.log(answer.soln.printablelines());
+            $("#answerMessage").text(answer.message);
+            if (answer.is_solved) {
+                var adiv=$("#answer")[0];
+                adiv.innerHTML = "";
+                renderboard(answer.soln,adiv,"a",false);
+            }
+        }
+    </script>
+
+    <button onclick="solveq()">Solve</button><br>
+    Answer:
+    <div id="answerMessage"></div>
+    <div id="answer">
+    </div>
+    
+</body>
+</html>
