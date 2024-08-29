@@ -22,7 +22,7 @@ var eg17puzz = [
     ['6',' ',' ', ' ',' ',' ', ' ',' ',' ',]
 ];
 
-var su = new SudokuPuzzle(eg1puzz);
+var su = new SudokuPuzzle(eg17puzz);
 console.log(su.printablelines());
 $('#tlog').text($('#tlog').text() + "\n"+su.printablelines());
 var answer = su.solve();

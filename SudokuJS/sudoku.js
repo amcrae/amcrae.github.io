@@ -1,4 +1,4 @@
-/* Sudoku novice-level puzzle solver.
+/* Sudoku novice and intermediate level puzzle solver.
  * For browser compatibility see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference#browser_compatibility
  * 2024-08-27
  * Andrew McRae
@@ -89,7 +89,6 @@ class SudokuPuzzle {
                 pset.delete(answer);
             }
         }
-
     }
 
     // Produce index limits for a subsquare of the sudoku board.
@@ -109,7 +108,7 @@ class SudokuPuzzle {
         for (let rindex = sqr_range.row_min; rindex <= sqr_range.row_max; rindex++) {
             const rowa = this.#possibles[rindex];
             for (let cindex = sqr_range.col_min; cindex <= sqr_range.col_max; cindex++) {
-                if (rindex!=row && cindex!=col) {
+                if (!(rindex==row && cindex==col)) {
                     var pset = rowa[cindex];
                     pset.delete(answer);
                 }
@@ -155,10 +154,72 @@ class SudokuPuzzle {
         }        
     }
 
+    poss_elsewhere_in_row(poss, rindex, col) {
+        const row = this.#possibles[rindex];
+        for (let cindex = 0; cindex < row.length; cindex++) {
+            if (cindex != col) {
+                var pset = row[cindex];
+                if (pset.has(poss)) return true;
+            }
+        }
+        return false;
+    }
+
+    poss_elsewhere_in_col(poss, row, col) {
+        for (let rindex = 0; rindex < this.#possibles.length; rindex++) {
+            if (rindex!=row) {
+                const rowa = this.#possibles[rindex];
+                var pset = rowa[col];
+                if (pset.has(poss)) return true;
+            }
+        }
+        return false;
+    }
+
+    poss_elsewhere_in_sqr(poss, row, col) {
+        const sqr_range = this.subsquare_ranges(row,col);
+        for (let rindex = sqr_range.row_min; rindex <= sqr_range.row_max; rindex++) {
+            const rowa = this.#possibles[rindex];
+            for (let cindex = sqr_range.col_min; cindex <= sqr_range.col_max; cindex++) {
+                if (!(rindex==row && cindex==col)) {
+                    var pset = rowa[cindex];
+                    if(pset.has(poss)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Check if any of the possibilities in possibles do not occur elsewhere
+    // in the same row or col or square, and return that possibility.
+    // Return null if all possibilities in possibles are found elsewhere.
+    find_singular_poss(possibles, rindex, cindex) {
+        for (const poss of possibles) {
+            var in_row = this.poss_elsewhere_in_row(poss,rindex,cindex);
+            var in_col = this.poss_elsewhere_in_col(poss,rindex,cindex);
+            var in_sqr = this.poss_elsewhere_in_sqr(poss,rindex,cindex);
+            //Any of the 3 rules can determine the possibility is singular.
+            var singular = !in_row || !in_col || !in_sqr;
+            if (singular) return poss;
+        }
+        return null;
+    }
+
     // Where a possibility occurs in only one position in the
     // the same row, column, or square, it must be answer.
     fix_group_inevitables() {
-        //TODO
+        for (let rindex = 0; rindex < this.#board.length; rindex++) {
+            const row = this.#board[rindex];
+            for (let cindex = 0; cindex < row.length; cindex++) {
+                const element = row[cindex];
+                let poss = this.#possibles[rindex][cindex];
+                // Looking for cells which are still unknown.
+                if (element == ' ' && poss.size>1) {
+                    var singular = this.find_singular_poss(poss,rindex,cindex);
+                    if (singular!=null) this.setDigit(rindex,cindex,singular);
+                }
+            }
+        }
     }
 
     is_solved(){
