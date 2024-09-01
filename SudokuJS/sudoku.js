@@ -27,7 +27,9 @@ class SudokuPuzzle {
     }
 
     setDigit(row,col, digit) {
-        this.#board[row][col] = digit;
+        var v = digit;
+        if (v == ' '|| v=='') v = null;
+        this.#board[row][col] = v;
     }
 
     getDigit(row,col) {
@@ -40,12 +42,15 @@ class SudokuPuzzle {
             const row = this.#board[rindex];
             for (let cindex = 0; cindex < row.length; cindex++) {
                 const element = row[cindex];
-                text += "'"+element+"'"
+                if (element==null) text += 'null'
+                else text += "'"+element+"' "
                 if (cindex%3==2 && cindex<8) text += "|";
                 if (cindex < row.length) text += ", ";
             }
             text += "\n";
-            if (rindex%3 == 2 && rindex<8) text += ("---------------------------------------------\n");
+            if (rindex%3 == 2 && rindex<8) {
+                text += ("------------------------------------------------------\n");
+            }
         }
         return text;
     }
@@ -130,7 +135,7 @@ class SudokuPuzzle {
             const row = this.#board[rindex];
             for (let cindex = 0; cindex < row.length; cindex++) {
                 const element = row[cindex];
-                if (element != ' ') {
+                if (element != null && element != ' ') {
                     this.eliminate_possibles(rindex,cindex,element);
                     this.#possibles[rindex][cindex] = new Set([element]);
                 }
@@ -214,7 +219,7 @@ class SudokuPuzzle {
                 const element = row[cindex];
                 let poss = this.#possibles[rindex][cindex];
                 // Looking for cells which are still unknown.
-                if (element == ' ' && poss.size>1) {
+                if ((element == null) && poss.size>1) {
                     var singular = this.find_singular_poss(poss,rindex,cindex);
                     if (singular!=null) this.setDigit(rindex,cindex,singular);
                 }
